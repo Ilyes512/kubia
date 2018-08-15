@@ -2,17 +2,15 @@ FROM golang:1.10.3-alpine3.8 AS builder
 
 WORKDIR $GOPATH/src/github.com/Ilyes512/kubia
 
-COPY . .
-
 RUN apk add --no-cache \
         git \
         musl-dev \
         gcc \
         make \
         libc-dev \
-        curl \
-        xz \
         upx
+
+COPY . .
     
 RUN go get -d -v \
     && CC=$(which gcc) GOOS=linux GOARCH=amd64 go build -a -tags netgo -ldflags '-linkmode external -extldflags "-static" -s -w' -o kubia
