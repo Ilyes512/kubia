@@ -23,4 +23,4 @@ COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs
 COPY --from=builder /go/src/github.com/Ilyes512/kubia/kubia /
 COPY --from=builder /etc/passwd /etc/passwd
 
-ENTRYPOINT ["/kubia"]
+CMD ["/kubia"]
