@@ -13,14 +13,17 @@ const port = ":8080"
 
 func main() {
 	c := color.New(color.FgGreen).Add(color.Bold)
-	c.Printf("Kubia server starting on port %s...\n", port)
+	_, err := c.Printf("Kubia server starting on port %s...\n", port)
+	if err != nil {
+		log.Panic(err)
+	}
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		log.Println("Received request from " + r.RemoteAddr)
-		w.WriteHeader(http.StatusOK)
 
 		hostname, _ := os.Hostname()
 
+		w.WriteHeader(http.StatusOK)
 		fmt.Fprintf(w, "You've hit %s\n", hostname)
 	})
 
