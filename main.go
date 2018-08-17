@@ -5,11 +5,14 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"sync/atomic"
 
 	"github.com/fatih/color"
 )
 
 const port = ":8080"
+
+var requestCount int32
 
 func main() {
 	c := color.New(color.FgGreen).Add(color.Bold)
@@ -22,9 +25,16 @@ func main() {
 		log.Println("Received request from " + r.RemoteAddr)
 
 		hostname, _ := os.Hostname()
+		atomic.AddInt32(&requestCount, 1)
+
+		if requestCount > 10 {
+			w.WriteHeader(http.StatusInternalServerError)
+			fmt.Fprintf(w, "I'm not well. Please restart me!")
+			return
+		}
 
 		w.WriteHeader(http.StatusOK)
-		fmt.Fprintf(w, "You've hit %s\n", hostname)
+		fmt.Fprintf(w, "#%d You've hit %s\n", requestCount, hostname)
 	})
 
 	log.Fatal(http.ListenAndServe(":8080", nil))
