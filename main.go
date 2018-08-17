@@ -22,8 +22,12 @@ func main() {
 	flag.BoolVar(&unhealthy, "unhealthy", false, "set this flag to start kubia in unhealthy mode (after 10 requests it returns 500 header")
 	flag.Parse()
 
-	c := color.New(color.FgGreen).Add(color.Bold)
-	_, err := c.Printf("Kubia server starting on port %s...\n", port)
+	var unhealthyStr string
+	if unhealthy {
+		unhealthyStr = " in unhealthy mode"
+	}
+
+	_, err := color.New(color.FgGreen).Add(color.Bold).Printf("Kubia server starting%s on port %s...\n", unhealthyStr, port)
 	if err != nil {
 		log.Panic(err)
 	}
