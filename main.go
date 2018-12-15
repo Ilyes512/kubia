@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"html/template"
 	"log"
 	"net/http"
 	"os"
@@ -11,51 +12,90 @@ import (
 	"github.com/fatih/color"
 )
 
-const port = ":8080"
-
-var (
-	requestCount int32
-	unhealthy    bool
+const (
+	port = ":8080"
+	tpl  = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="icon" href="data:,">
+    <title>Kubia</title>
+</head>
+<body>
+	<span align="center">
+		<h1>Kubia</h1>
+		<p>{{- .Message -}}</p>
+	</span>
+</body>
+</html>
+`
 )
 
+var (
+	requestCount   int64
+	unhealthyAfter int64
+)
+
+type templateData struct {
+	Unhealthy bool
+	Hostname  string
+	Message   string
+}
+
+func init() {
+	flag.Int64Var(&unhealthyAfter, "unhealthyAfter", 0, "set the number of request after which the service should fail (returning 500 httpcode")
+}
+
 func main() {
-	flag.BoolVar(&unhealthy, "unhealthy", false, "set this flag to start kubia in unhealthy mode (after 10 requests it returns 500 header")
 	flag.Parse()
 
 	var unhealthyStr string
-	if unhealthy {
+	if unhealthyAfter != 0 {
 		unhealthyStr = " in unhealthy mode"
 	}
 
-	_, err := color.New(color.FgGreen).Add(color.Bold).Printf("Kubia server starting%s on port %s...\n", unhealthyStr, port)
-	if err != nil {
-		log.Panic(err)
-	}
+	_, err := color.New(color.FgGreen).Add(color.Bold).Printf("Kubia server starting%s on port 'http://localhost%s'...\n", unhealthyStr, port)
+	checkErr(err)
+
+	t, err := template.New("page").Parse(tpl)
+	checkErr(err)
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		log.Println("Received request from " + r.RemoteAddr)
-
 		hostname, err := os.Hostname()
-		if err != nil {
-			log.Panic(err)
-		}
-		atomic.AddInt32(&requestCount, 1)
+		checkErr(err)
 
-		if unhealthy && requestCount > 10 {
+		atomic.AddInt64(&requestCount, 1)
+
+		data := templateData{
+			Unhealthy: unhealthyAfter != 0 && requestCount > unhealthyAfter,
+			Hostname:  hostname,
+			Message:   "",
+		}
+
+		if data.Unhealthy {
 			w.WriteHeader(http.StatusInternalServerError)
-			_, err = fmt.Fprintf(w, "I'm not well. Please restart me!")
-			if err != nil {
-				log.Panic(err)
-			}
+
+			data.Message = "I'm not well. Please restart me!"
+
+			err = t.Execute(w, data)
+			checkErr(err)
 			return
 		}
 
 		w.WriteHeader(http.StatusOK)
-		_, err = fmt.Fprintf(w, "#%d You've hit %s\n", requestCount, hostname)
-		if err != nil {
-			log.Panic(err)
-		}
+		data.Message = fmt.Sprintf("#%d You've hit %s", requestCount, hostname)
+		err = t.Execute(w, data)
+		checkErr(err)
 	})
 
 	log.Fatal(http.ListenAndServe(":8080", nil))
+}
+
+func checkErr(err error) {
+	if err != nil {
+		log.Panic(err)
+	}
 }
