@@ -8,7 +8,7 @@ This is a Dockerfile that builds a "Kubia"-image, the example image used in the 
 $ ./kubia -help
 Usage of ./kubia:
   -unhealthyAfter int
-        set the number of request after which the service should fail (returning 500 httpcode
+        set the number of request after which the service should fail (returning 500 httpcode)
 
 $ ./kubia
 Kubia server starting on port 'http://localhost:8080'...

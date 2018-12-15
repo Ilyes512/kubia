@@ -46,7 +46,7 @@ type templateData struct {
 }
 
 func init() {
-	flag.Int64Var(&unhealthyAfter, "unhealthyAfter", 0, "set the number of request after which the service should fail (returning 500 httpcode")
+	flag.Int64Var(&unhealthyAfter, "unhealthyAfter", 0, "set the number of request after which the service should fail (returning 500 httpcode)")
 }
 
 func main() {
