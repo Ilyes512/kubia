@@ -27,7 +27,7 @@ const (
 <body>
 	<span align="center">
 		<h1>Kubia</h1>
-		<p>{{- .Message -}}</p>
+		<p>{{ .Message }}</p>
 	</span>
 </body>
 </html>
@@ -60,8 +60,7 @@ func main() {
 	_, err := color.New(color.FgGreen).Add(color.Bold).Printf("Kubia server starting%s on port 'http://localhost%s'...\n", unhealthyStr, port)
 	checkErr(err)
 
-	t, err := template.New("page").Parse(tpl)
-	checkErr(err)
+	t := template.Must(template.New("page").Parse(tpl))
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		hostname, err := os.Hostname()
@@ -78,7 +77,7 @@ func main() {
 		if data.Unhealthy {
 			w.WriteHeader(http.StatusInternalServerError)
 
-			data.Message = "I'm not well. Please restart me!"
+			data.Message = fmt.Sprintf("#%d I'm not well. Please restart me!", requestCount)
 
 			err = t.Execute(w, data)
 			checkErr(err)
@@ -91,7 +90,7 @@ func main() {
 		checkErr(err)
 	})
 
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Fatal(http.ListenAndServe("localhost:8080", nil))
 }
 
 func checkErr(err error) {
