@@ -27,6 +27,7 @@ FROM scratch
 
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs
 COPY --from=builder /src/build/kubia /
+COPY --from=builder /src/templates /templates
 COPY --from=builder /etc/passwd /etc/passwd
 
 CMD ["/kubia"]
