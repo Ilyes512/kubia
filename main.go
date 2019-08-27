@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"html/template"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -15,6 +16,7 @@ import (
 	"time"
 
 	"github.com/fatih/color"
+	"github.com/tomasen/realip"
 )
 
 var (
@@ -24,9 +26,10 @@ var (
 
 //TemplateData contains data used within the view
 type TemplateData struct {
-	IsUnhealthy bool
-	Hostname    string
-	Message     template.HTML
+	IsUnhealthy    bool
+	Hostname       string
+	Message        template.HTML
+	RemoteIPAdress string
 }
 
 //Config for starting app
@@ -69,7 +72,7 @@ func main() {
 	flag.Parse()
 
 	config := Config{
-		Host:         "localhost",
+		Host:         "0.0.0.0",
 		Port:         "8080",
 		ReadTimout:   5 * time.Second,
 		WriteTimeout: 5 * time.Second,
@@ -91,7 +94,7 @@ func Start(config Config) *HTMLServer {
 
 	htmlServer := HTMLServer{
 		server: &http.Server{
-			Addr:           fmt.Sprintf("%s:%s", config.Host, config.Port),
+			Addr:           net.JoinHostPort(config.Host, config.Port),
 			ReadTimeout:    config.ReadTimout,
 			WriteTimeout:   config.WriteTimeout,
 			MaxHeaderBytes: 1 << 20,
@@ -143,9 +146,10 @@ func homeHandler(w http.ResponseWriter, r *http.Request) {
 	appstate.AddRequest()
 
 	data := TemplateData{
-		IsUnhealthy: appstate.IsUnhealthy(),
-		Hostname:    hostname,
-		Message:     "",
+		IsUnhealthy:    appstate.IsUnhealthy(),
+		Hostname:       hostname,
+		Message:        "",
+		RemoteIPAdress: realip.FromRequest(r),
 	}
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")

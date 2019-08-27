@@ -10,6 +10,7 @@
 <body>
 	<span align="center">
 		<h1>Kubia</h1>
+        <p>Remote IP-address: {{.RemoteIPAdress}}
 		<p>{{ .Message }}</p>
 	</span>
 </body>

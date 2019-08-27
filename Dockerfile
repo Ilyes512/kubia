@@ -1,4 +1,4 @@
-FROM golang:1.11.3-alpine3.8 AS builder
+FROM golang:1.12.9-alpine3.10 AS builder
 
 WORKDIR /src
 
@@ -17,7 +17,7 @@ COPY go.sum .
 RUN go mod download
 
 COPY . .
-    
+
 RUN mkdir build \
     && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -tags netgo -ldflags '-extldflags "-static" -s -w' -o ./build/kubia
 
