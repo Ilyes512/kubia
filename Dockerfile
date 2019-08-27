@@ -21,7 +21,7 @@ COPY . .
 RUN mkdir build \
     && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -tags netgo -ldflags '-extldflags "-static" -s -w' -o ./build/kubia
 
-RUN upx --brute --no-progress kubia
+RUN upx --brute --no-progress ./build/kubia
 
 FROM scratch
 
